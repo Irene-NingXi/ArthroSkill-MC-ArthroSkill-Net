@@ -1,0 +1,84 @@
+# ArthroSkill-MC 配置文件
+# 对应论文: Multi-centre, cross-joint interpretable skill assessment in arthroscopic surgery videos
+
+# 数据参数
+data:
+  video_dir: "./videos"           # 原始视频目录
+  output_dir: "./processed"       # 预处理后数据保存目录
+  clip_len: 16                    # 每个片段帧数 (论文: 16-frame clips)
+  img_size: [480, 640]            # 高x宽 (论文: 640x480)
+  fps: 25                         # 采样帧率
+
+  # 废片过滤阈值 (论文: brightness and blur thresholds)
+  brightness_threshold: 30        # 平均亮度低于此值视为废片
+  blur_threshold: 100             # Laplacian方差低于此值视为模糊废片
+
+  # 标签
+  num_classes: 3                  # novice, intermediate, expert
+  grs_dimensions: 6               # GRS 6个维度
+  skill_levels: ["novice", "intermediate", "expert"]
+  grs_total_min: 6                # GRS总分范围
+  grs_total_max: 30
+
+# 模型参数
+model:
+  # 外观分支: Video Swin Transformer (Swin-T)
+  appearance:
+    backbone: "swin3d_t"          # Video Swin Tiny
+    output_dim: 768               # 论文: 768-dimensional appearance vector
+    pretrained: true
+
+  # 运动分支
+  motion:
+    detector: "yolov8n"           # YOLOv8 nano, 可换 yolov8s
+    conf_threshold: 0.5           # 检测置信度阈值 (论文: 0.5)
+    # 1D-CNN + BiLSTM
+    cnn_channels: [64, 128, 256]  # 3层1D-CNN通道数
+    cnn_kernels: [7, 5, 3]        # 核大小
+    lstm_hidden: 128              # BiLSTM hidden size
+    lstm_layers: 1
+    output_dim: 256               # 论文: 256-dimensional motion vector
+
+  # 融合模块
+  fusion:
+    num_heads: 8                  # Cross-attention heads
+    dropout: 0.1
+
+  # 输出头
+  heads:
+    classification:
+      hidden_dim: 512
+      dropout: 0.3
+    regression:
+      hidden_dim: 512
+      dropout: 0.3
+      num_dimensions: 6           # 6个GRS维度
+      predict_total: true         # 同时回归总分
+
+# 训练参数 (论文: AdamW, lr=1e-4, batch=4, cosine-annealing)
+training:
+  batch_size: 4
+  num_epochs: 100
+  learning_rate: 0.0001           # 1e-4
+  weight_decay: 0.05              # AdamW default
+  optimizer: "adamw"
+  scheduler: "cosine"
+  warmup_epochs: 5
+  lambda_reg: 1.0                 # L = L_cls + lambda * L_reg
+  label_smoothing: 0.1
+
+  # 数据增强
+  augmentation:
+    random_crop: true
+    horizontal_flip: true
+    color_jitter: 0.2
+
+  # 设备
+  device: "auto"                  # auto/cuda/cpu
+  num_workers: 4
+  seed: 42
+
+# 评估参数
+evaluation:
+  metrics: ["accuracy", "pearson_r", "mae", "rmse", "icc", "confusion_matrix"]
+  calibration_bins: 5
