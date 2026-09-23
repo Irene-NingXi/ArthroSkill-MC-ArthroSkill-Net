@@ -1,6 +1,6 @@
 """
 Dataset definition.
-Corresponds to paper Methods: "Each video was decoded at 25 fps, rescaled to 640x480, 
+Corresponds to paper Methods: "Each video was decoded at 25 fps, rescaled to 640x480,
 and divided into non-overlapping 16-frame clips."
 """
 import os
@@ -20,7 +20,8 @@ class ArthroscopyDataset(Dataset):
         'appearance': [C, T, H, W] video tensor,
         'motion': [T, D] kinematic feature sequence (optional, placeholder if not pre-computed),
         'label_cls': int skill level (0=novice, 1=intermediate, 2=expert),
-        'label_reg': [7] 6 GRS dimensions + total score (normalised to 0-1)
+        'label_reg': [7] 6 GRS dimensions + total score (normalised to 0-1),
+        'centre': str site identifier ("A", "B", or "C") when present
     }
     """
     def __init__(self, data_dir, split="train", config_path="configs/config.yaml", transform=None):
@@ -67,6 +68,7 @@ class ArthroscopyDataset(Dataset):
         motion = data.get("motion", torch.zeros(self.clip_len, 6))
         label_cls = data["label_cls"]
         label_reg = data["label_reg"]
+        centre = data.get("centre", None)
 
         if self.transform and self.split == "train":
             appearance = self._augment(appearance)
@@ -76,7 +78,8 @@ class ArthroscopyDataset(Dataset):
             "motion": motion.float(),
             "label_cls": torch.tensor(label_cls, dtype=torch.long),
             "label_reg": label_reg.float(),
-            "clip_id": sample["clip_id"]
+            "clip_id": sample["clip_id"],
+            "centre": centre
         }
 
     def _augment(self, x):
