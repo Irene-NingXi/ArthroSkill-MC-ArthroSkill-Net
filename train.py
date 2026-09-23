@@ -132,7 +132,7 @@ def main(config_path, data_dir, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    train_dataset = ArthroscopyDataset(data_dir, split="train", config_path=config_path)
+    train_dataset = ArthroscopyDataset(data_dir, split="train", config_path=config_path, transform=True)
     val_dataset = ArthroscopyDataset(data_dir, split="val", config_path=config_path)
 
     train_loader = DataLoader(
