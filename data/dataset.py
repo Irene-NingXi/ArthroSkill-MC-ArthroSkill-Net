@@ -44,7 +44,9 @@ class ArthroscopyDataset(Dataset):
 
         samples = []
         if not clips_dir.exists():
-            return samples
+            raise FileNotFoundError(
+                f"Missing {clips_dir}. Expected <data>/{self.split}/clips/*.pt."
+            )
 
         for clip_file in sorted(clips_dir.glob("*.pt")):
             samples.append({
@@ -64,9 +66,15 @@ class ArthroscopyDataset(Dataset):
         if appearance.dim() == 4 and appearance.shape[-1] == 3:
             appearance = appearance.permute(3, 0, 1, 2)
 
-        motion = data.get("motion", torch.zeros(self.clip_len, 6))
+        motion = torch.as_tensor(data.get("motion", torch.zeros(self.clip_len, 6)), dtype=torch.float32)
+        if motion.shape != (self.clip_len, 6):
+            raise ValueError(f"{sample['clip_path']} motion must have shape {(self.clip_len, 6)}, got {tuple(motion.shape)}")
+        if "label_cls" not in data or "label_reg" not in data:
+            raise KeyError(f"{sample['clip_path']} has no label_cls/label_reg fields")
         label_cls = data["label_cls"]
-        label_reg = data["label_reg"]
+        label_reg = torch.as_tensor(data["label_reg"], dtype=torch.float32)
+        if label_reg.numel() != 7:
+            raise ValueError(f"{sample['clip_path']} label_reg must contain 7 values")
 
         if self.transform and self.split == "train":
             appearance = self._augment(appearance)

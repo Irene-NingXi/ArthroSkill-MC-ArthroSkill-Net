@@ -23,8 +23,10 @@ class SkillMetrics:
         """Pearson correlation coefficient."""
         if len(y_true) < 2:
             return 0.0, 1.0
+        if np.std(y_true) == 0 or np.std(y_pred) == 0:
+            return 0.0, 1.0
         r, p = pearsonr(y_true, y_pred)
-        return r, p
+        return float(np.nan_to_num(r)), float(np.nan_to_num(p, nan=1.0))
 
     @staticmethod
     def mae(y_true, y_pred):

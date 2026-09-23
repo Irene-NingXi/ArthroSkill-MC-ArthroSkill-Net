@@ -42,7 +42,8 @@ class VideoPreprocessor:
             print(f"Cannot open video: {video_path}")
             return 0
 
-        orig_fps = cap.get(cv2.CAP_PROP_FPS)
+        orig_fps = cap.get(cv2.CAP_PROP_FPS) or float(self.fps)
+        step = max(float(orig_fps) / float(self.fps), 1e-6)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
         frames = []
@@ -52,6 +53,9 @@ class VideoPreprocessor:
             ret, frame = cap.read()
             if not ret:
                 break
+            # Keep only frames at the requested sampling rate.
+            if i > 0 and int(round(i / step)) == int(round((i - 1) / step)):
+                continue
 
             frame = cv2.resize(frame, (self.img_size[1], self.img_size[0]))
 
@@ -108,8 +112,7 @@ class VideoPreprocessor:
         print(f"Found {len(video_files)} video files")
         total_clips = 0
         for vf in video_files:
-            out_subdir = output_dir / vf.stem
-            n = self.process_video(vf, out_subdir)
+            n = self.process_video(vf, output_dir / "clips")
             total_clips += n
 
         print(f"Preprocessing complete, {total_clips} clips generated")

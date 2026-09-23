@@ -30,12 +30,13 @@ class AppearanceBranch(nn.Module):
                 num_classes=0,
                 in_chans=3
             )
-            self.temporal_pool = nn.AdaptiveAvgPool1d(1)
+            self.feature_dim = getattr(self.backbone, "num_features", 768)
         except Exception as e:
             print(f"Warning: {e}, using simplified Conv3D backbone")
             self.backbone = self._build_simple_3d_backbone()
 
-        self.feature_dim = 768
+        if not hasattr(self, "feature_dim"):
+            self.feature_dim = 128
         self.proj = nn.Sequential(
             nn.Linear(self.feature_dim, output_dim),
             nn.LayerNorm(output_dim),

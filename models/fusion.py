@@ -70,6 +70,10 @@ class OcclusionAwareFusion(nn.Module):
         key_padding_mask = None
         if occlusion_mask is not None:
             key_padding_mask = (occlusion_mask == 0)  # [B, T], bool
+            all_masked = key_padding_mask.all(dim=1)
+            if all_masked.any():
+                key_padding_mask = key_padding_mask.clone()
+                key_padding_mask[all_masked, 0] = False
 
         # Cross-modal attention
         attn_out, attn_weights = self.cross_attn(

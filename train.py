@@ -105,6 +105,8 @@ def validate(model, dataloader, device):
         all_labels_reg.extend(labels_reg[:, 6].numpy())
         all_probs.extend(probs.cpu().numpy())
 
+    # Validation in this function receives only model outputs; keep the
+    # training-time metric in normalised units. evaluate.py converts to GRS.
     metrics = SkillMetrics.compute_all(
         np.array(all_labels_cls),
         np.array(all_preds_cls),
@@ -121,7 +123,10 @@ def main(config_path, data_dir, output_dir):
         config = yaml.safe_load(f)
 
     set_seed(config["training"]["seed"])
-    device = torch.device("cuda" if torch.cuda.is_available() and config["training"]["device"] == "auto" else "cpu")
+    requested_device = config["training"].get("device", "auto")
+    if requested_device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("training.device=cuda was requested, but CUDA is unavailable")
+    device = torch.device("cuda" if requested_device in ("auto", "cuda") and torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
     output_dir = Path(output_dir)

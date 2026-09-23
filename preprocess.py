@@ -3,6 +3,7 @@
 用法: python preprocess.py --input ./videos --output ./processed
 """
 import argparse
+from pathlib import Path
 from utils import VideoPreprocessor
 
 
@@ -14,6 +15,8 @@ def main():
     parser.add_argument("--fps", type=int, default=25, help="采样帧率")
     parser.add_argument("--brightness", type=int, default=30, help="亮度阈值")
     parser.add_argument("--blur", type=int, default=100, help="模糊度阈值")
+    parser.add_argument("--split", choices=["train", "val"], default="train",
+                        help="输出到 <output>/<split>/clips")
     args = parser.parse_args()
 
     preprocessor = VideoPreprocessor(
@@ -23,7 +26,7 @@ def main():
         blur_thresh=args.blur
     )
 
-    total = preprocessor.process_directory(args.input, args.output)
+    total = preprocessor.process_directory(args.input, str(Path(args.output) / args.split))
     print(f"\n预处理完成，共生成 {total} 个片段")
 
 

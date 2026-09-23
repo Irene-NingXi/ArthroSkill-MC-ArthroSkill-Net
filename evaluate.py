@@ -53,8 +53,12 @@ def evaluate(model, dataloader, device, config):
 
     y_true_cls = np.array(all_labels_cls)
     y_pred_cls = np.array(all_preds_cls)
-    y_true_reg = np.array(all_labels_reg)
-    y_pred_reg = np.array(all_preds_reg)
+    # Stored labels are normalised to [0, 1], while the paper reports GRS
+    # totals on the native 6-30 scale.
+    lo = float(config["data"].get("grs_total_min", 6))
+    hi = float(config["data"].get("grs_total_max", 30))
+    y_true_reg = np.array(all_labels_reg) * (hi - lo) + lo
+    y_pred_reg = np.array(all_preds_reg) * (hi - lo) + lo
     y_prob = np.array(all_probs)
 
     metrics = SkillMetrics.compute_all(y_true_cls, y_pred_cls, y_true_reg, y_pred_reg, y_prob)
