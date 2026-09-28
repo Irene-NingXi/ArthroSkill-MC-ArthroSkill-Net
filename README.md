@@ -29,6 +29,8 @@ ArthroSkill-MC/
 │   ├── evaluate_sais.py     # SAIS evaluation with calibration analysis
 │   ├── train_loso.py        # Leave-one-site-out cross-validation
 │   ├── extract_motion.py    # YOLOv8 + DeepSORT feature extraction
+│   ├── run_ablation.py      # Five paper ablations
+│   ├── analyze_predictions.py # Recompute metrics from Excel archives
 │   └── train_video_baselines.py # Expanded video baseline training
 ├── utils/
 │   ├── __init__.py
@@ -148,7 +150,7 @@ python scripts/train_loso.py --config configs/config.yaml --data ./processed --o
 | Motion branch (YOLOv8 + DeepSORT) | `models/motion_branch.py` | `KinematicFeatureExtractor` implements 6 kinematic features; `MotionEncoder` implements 1D-CNN (k7,5,3) + BiLSTM (128) |
 | Occlusion-aware fusion | `models/fusion.py` | Cross-attention: Q=appearance, K/V=motion; `key_padding_mask` implements confidence<0.5 suppression |
 | Multi-task head | `models/heads.py` | Classification head (CE loss) + Regression head (Smooth L1) |
-| SAIS baseline | `models/sais.py` | Reproduced from Kiyasseh et al., Nat. Biomed. Eng. 2023; grid search over lr and stride |
+| SAIS baseline | `models/sais.py` | Appearance-only temporal baseline; stride is configurable via `--stride` |
 | Training protocol | `train.py` | AdamW + Cosine Annealing; three-stage pretraining requires loading corresponding pretrained weights in config |
 | LOSO evaluation | `scripts/train_loso.py` | 3-fold leave-one-site-out cross-validation |
 | Evaluation | `evaluate.py` + `utils/metrics.py` | All metrics from the paper: accuracy, Pearson r, MAE, RMSE, ICC(A,1), confusion matrix, calibration analysis |
