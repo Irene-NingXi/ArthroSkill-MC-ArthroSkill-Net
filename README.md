@@ -22,7 +22,7 @@ ArthroSkill-MC/
 │   ├── fusion.py            # Occlusion-aware cross-modal attention (Q=appearance, K/V=motion)
 │   ├── heads.py             # Classification (3-class) + Regression (6-D GRS + total)
 │   ├── sais.py              # SAIS baseline (appearance-only, for comparison)
-│   └── baselines.py         # 3D-ResNet-18 and Video-Swin-only baselines
+│   ├── baselines.py          # 3D-ResNet-18 and Video-Swin-only baselines
 │   └── arthroskill.py       # Full model assembly + multi-task loss
 ├── scripts/
 │   ├── train_sais.py        # SAIS baseline training
