@@ -134,7 +134,16 @@ python scripts/train_video_baselines.py --model swin --config configs/config.yam
 
 `extract_motion.py` expects a CSV with `video_id,video_path,split,label_cls,label_reg` and optional `centre`/`hospital`; `label_reg` is seven comma-separated normalised GRS values.
 
-### 7. Leave-One-Site-Out (LOSO)
+### 7. Ablations and Excel audit
+
+```bash
+python scripts/run_ablation.py --variant appearance_only --config configs/config.yaml --data ./processed --output ./outputs/ablation
+python scripts/analyze_predictions.py --xlsx /path/to/ArthroSkill-MC_V4.xlsx --output ./outputs/prediction_audit.json
+```
+
+Run the ablation command once for each of `appearance_only`, `motion_only`, `naive_concat`, `unmasked`, and `full`.
+
+### 8. Leave-One-Site-Out (LOSO)
 
 ```bash
 python scripts/train_loso.py --config configs/config.yaml --data ./processed --output ./outputs/loso

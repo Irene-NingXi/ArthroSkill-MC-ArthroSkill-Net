@@ -20,8 +20,10 @@ def rows_from_sheet(ws):
     return out
 
 def summarize(rows, pred='pred_class_main', score='pred_grs_main'):
-    label={'novice':0,'intermediate':1,'expert':2}; y=np.array([label[str(r['real_label']).lower()] for r in rows]); p=np.array([label[str(r[pred]).lower()] for r in rows]); true=np.array([float(r['real_grs']) for r in rows]); pred_score=np.array([float(r[score]) for r in rows]); err=np.abs(y-p)
-    return {'n':len(rows),'correct':int((y==p).sum()),'accuracy':float((y==p).mean()),'grs_mae':float(np.abs(true-pred_score).mean()),'adjacent_errors':int((err==1).sum()),'cross_grade_errors':int((err>=2).sum())}
+    label={'novice':0,'intermediate':1,'expert':2}; y=np.array([label[str(r['real_label']).lower()] for r in rows]); p=np.array([label[str(r[pred]).lower()] for r in rows]); true=np.array([float(r['real_grs']) for r in rows]); pred_score=np.array([float(r[score]) for r in rows]) if score and score in rows[0] and rows[0][score] is not None else None; err=np.abs(y-p)
+    result={'n':len(rows),'correct':int((y==p).sum()),'accuracy':float((y==p).mean()),'adjacent_errors':int((err==1).sum()),'cross_grade_errors':int((err>=2).sum())}
+    if score in rows[0] and rows[0][score] is not None: result['grs_mae']=float(np.abs(true-pred_score).mean())
+    return result
 
 def main(a):
     wb=load_workbook(a.xlsx,data_only=True,read_only=True); rows=[]
@@ -29,7 +31,7 @@ def main(a):
         if ws.title.startswith('batch') and 'prediction' in ws.title: rows.extend(rows_from_sheet(ws))
     if not rows: raise SystemExit('No batch*_predictions sheets found')
     result={'sheets':wb.sheetnames,'n_rows':len(rows),'main':summarize(rows)}
-    if all(k in rows[0] for k in ('pred_class_sais','pred_prob_novice_sais')): result['sais'] = summarize(rows,'pred_class_sais','pred_grs_main')
+    if all(k in rows[0] for k in ('pred_class_sais','pred_prob_novice_sais')): result['sais'] = summarize(rows,'pred_class_sais',None)
     out=Path(a.output); out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,indent=2),encoding='utf-8'); print(json.dumps(result,indent=2))
 if __name__=='__main__':
  p=argparse.ArgumentParser(); p.add_argument('--xlsx',required=True); p.add_argument('--output',required=True); main(p.parse_args())
