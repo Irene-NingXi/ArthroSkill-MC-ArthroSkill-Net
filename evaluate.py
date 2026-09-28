@@ -36,7 +36,7 @@ def evaluate(model, dataloader, device, config):
             labels_cls = batch["label_cls"]
             labels_reg = batch["label_reg"]
 
-            outputs = model(appearance, motion)
+            outputs = model(appearance, motion, batch.get("detection_conf", None).to(device) if batch.get("detection_conf") is not None else None)
 
             probs = torch.softmax(outputs["cls_logits"], dim=-1)
             preds_cls = torch.argmax(probs, dim=-1).cpu().numpy()

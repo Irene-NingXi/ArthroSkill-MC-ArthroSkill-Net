@@ -12,7 +12,7 @@ from data import ArthroscopyDataset, collate_fn
 def train_epoch(model, loader, optimizer, device):
 	model.train()
 	for batch in loader:
-		outputs = model(batch["appearance"].to(device), batch["motion"].to(device))
+		outputs = model(batch["appearance"].to(device), batch["motion"].to(device), batch.get("detection_conf", None).to(device) if batch.get("detection_conf") is not None else None)
 		loss = model.compute_loss(outputs, batch["label_cls"].to(device), batch["label_reg"].to(device))["total"]
 		optimizer.zero_grad(set_to_none=True)
 		loss.backward()
@@ -22,7 +22,7 @@ def evaluate(model, loader, device):
 	model.eval(); truth_cls=[]; pred_cls=[]; truth_score=[]; pred_score=[]
 	with torch.no_grad():
 		for batch in loader:
-			outputs = model(batch["appearance"].to(device), batch["motion"].to(device))
+			outputs = model(batch["appearance"].to(device), batch["motion"].to(device), batch.get("detection_conf", None).to(device) if batch.get("detection_conf") is not None else None)
 			truth_cls.extend(batch["label_cls"].numpy().tolist()); pred_cls.extend(outputs["cls_logits"].argmax(1).cpu().numpy().tolist())
 			truth_score.extend(batch["label_reg"][:,6].numpy().tolist()); pred_score.extend(outputs["total_score"].squeeze(-1).cpu().numpy().tolist())
 	y=np.asarray(truth_score); p=np.asarray(pred_score); r=float(np.corrcoef(y,p)[0,1]) if len(y)>1 and y.std()>0 and p.std()>0 else 0.0

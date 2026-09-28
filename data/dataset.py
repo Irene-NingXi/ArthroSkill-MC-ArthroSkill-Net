@@ -66,6 +66,7 @@ class ArthroscopyDataset(Dataset):
             appearance = appearance.permute(3, 0, 1, 2)
 
         motion = data.get("motion", torch.zeros(self.clip_len, 6))
+        detection_conf = data.get("detection_conf", torch.ones(self.clip_len))
         label_cls = data["label_cls"]
         label_reg = data["label_reg"]
         centre = data.get("centre", None)
@@ -76,6 +77,7 @@ class ArthroscopyDataset(Dataset):
         return {
             "appearance": appearance.float(),
             "motion": motion.float(),
+            "detection_conf": detection_conf.float(),
             "label_cls": torch.tensor(label_cls, dtype=torch.long),
             "label_reg": label_reg.float(),
             "clip_id": sample["clip_id"],
@@ -93,6 +95,7 @@ def collate_fn(batch):
     """Custom collate for batching."""
     appearance = torch.stack([b["appearance"] for b in batch])
     motion = torch.stack([b["motion"] for b in batch])
+    detection_conf = torch.stack([b["detection_conf"] for b in batch])
     label_cls = torch.stack([b["label_cls"] for b in batch])
     label_reg = torch.stack([b["label_reg"] for b in batch])
     clip_ids = [b["clip_id"] for b in batch]
@@ -100,6 +103,7 @@ def collate_fn(batch):
     return {
         "appearance": appearance,
         "motion": motion,
+        "detection_conf": detection_conf,
         "label_cls": label_cls,
         "label_reg": label_reg,
         "clip_ids": clip_ids

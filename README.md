@@ -24,9 +24,10 @@ ArthroSkill-MC/
 │   ├── sais.py              # SAIS baseline (appearance-only, for comparison)
 │   └── arthroskill.py       # Full model assembly + multi-task loss
 ├── scripts/
-│   ├── train_sais.py        # SAIS training with grid search
+│   ├── train_sais.py        # SAIS baseline training
 │   ├── evaluate_sais.py     # SAIS evaluation with calibration analysis
-│   └── train_loso.py        # Leave-one-site-out cross-validation
+│   ├── train_loso.py        # Leave-one-site-out cross-validation
+│   └── extract_motion.py    # YOLOv8 + DeepSORT feature extraction
 ├── utils/
 │   ├── __init__.py
 │   ├── preprocessing.py     # Video clipping, brightness/blur filtering, per-video normalisation
@@ -179,7 +180,7 @@ training:
 
 1. **GPU requirement**: Video Swin Transformer training requires substantial VRAM; at least 12 GB is recommended (e.g. RTX 3090). If VRAM is insufficient, reduce batch_size or use a smaller backbone.
 2. **Pretrained weights**: The paper uses three-stage transfer: Kinetics-400 -> HeiChole -> arthroscopy data. The skeleton code has reserved interfaces; please download corresponding pretrained weights and load them in `appearance_branch.py`.
-3. **Motion features**: `motion` and `detection_conf` should be generated during preprocessing via YOLOv8 + DeepSORT. The current version provides feature computation logic; a full detection-tracking pipeline needs to be added.
+3. **Motion features**: `scripts/extract_motion.py` now runs YOLOv8 + DeepSORT, computes the six kinematic features, preserves per-frame detection confidence, and writes the `.pt` clip contract consumed by `data/dataset.py`.
 4. **Data privacy**: Surgical videos involve patient privacy. Please ensure ethics approval has been obtained and videos are de-identified before processing.
 
 ---
