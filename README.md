@@ -22,12 +22,14 @@ ArthroSkill-MC/
 │   ├── fusion.py            # Occlusion-aware cross-modal attention (Q=appearance, K/V=motion)
 │   ├── heads.py             # Classification (3-class) + Regression (6-D GRS + total)
 │   ├── sais.py              # SAIS baseline (appearance-only, for comparison)
+│   └── baselines.py         # 3D-ResNet-18 and Video-Swin-only baselines
 │   └── arthroskill.py       # Full model assembly + multi-task loss
 ├── scripts/
 │   ├── train_sais.py        # SAIS baseline training
 │   ├── evaluate_sais.py     # SAIS evaluation with calibration analysis
 │   ├── train_loso.py        # Leave-one-site-out cross-validation
-│   └── extract_motion.py    # YOLOv8 + DeepSORT feature extraction
+│   ├── extract_motion.py    # YOLOv8 + DeepSORT feature extraction
+│   └── train_video_baselines.py # Expanded video baseline training
 ├── utils/
 │   ├── __init__.py
 │   ├── preprocessing.py     # Video clipping, brightness/blur filtering, per-video normalisation
@@ -121,7 +123,16 @@ python scripts/train_sais.py --config configs/config.yaml --data ./processed --o
 python scripts/evaluate_sais.py --config configs/config.yaml --data ./processed --checkpoint ./outputs/sais/sais_best_model.pth --output ./outputs/sais
 ```
 
-### 6. Leave-One-Site-Out (LOSO)
+### 6. Expanded video baselines
+
+```bash
+python scripts/train_video_baselines.py --model resnet3d --config configs/config.yaml --data ./processed --output ./outputs/resnet3d
+python scripts/train_video_baselines.py --model swin --config configs/config.yaml --data ./processed --output ./outputs/swin_only
+```
+
+`extract_motion.py` expects a CSV with `video_id,video_path,split,label_cls,label_reg` and optional `centre`/`hospital`; `label_reg` is seven comma-separated normalised GRS values.
+
+### 7. Leave-One-Site-Out (LOSO)
 
 ```bash
 python scripts/train_loso.py --config configs/config.yaml --data ./processed --output ./outputs/loso
